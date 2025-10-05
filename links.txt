@@ -1,0 +1,7 @@
+; HKU-Notes GitHub Pages
+/hku
+	:=https://hku.jacobshing.com/
+
+; LinkedIn Profile
+/in
+	:=https://www.linkedin.com/in/jacobszh/

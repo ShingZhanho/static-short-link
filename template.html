@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Automatic redirect after 2 seconds -->
+  <meta http-equiv="refresh" content="2; url={% TARGET_URL %}">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #fafafa;
+      color: #1d1d1f;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 17px;
+      font-weight: 400;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      text-align: center;
+      padding: 40px 20px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 16px 0 rgba(0,0,0,0.06);
+      max-width: 400px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 18px;
+      margin-top: 0;
+    }
+    p {
+      color: #6e6e73;
+      margin-bottom: 24px;
+      margin-top: 0;
+    }
+    .redirect-btn {
+      display: inline-block;
+      padding: 12px 32px;
+      border-radius: 999px;
+      background: #0071e3;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: background 0.15s;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 1.5px 4px rgba(0,0,0,0.04);
+    }
+    .redirect-btn:hover, .redirect-btn:focus {
+      background: #005bb5;
+      text-decoration: none;
+      color: #fff;
+    }
+    @media (max-width: 500px) {
+      .container {
+        padding: 24px 8px;
+      }
+      h1 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>Redirecting</h1>
+    <p>
+      You'll be redirected soon.<br>
+      If redirection fails, click the button below.
+    </p>
+    <a href="{% TARGET_URL %}" class="redirect-btn">Go</a>
+  </main>
+</body>
+</html>
