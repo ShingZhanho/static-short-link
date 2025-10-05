@@ -1,0 +1,47 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build pages
+    runs-on: ubuntu-latest
+    # Skip the job entirely if the head commit message contains @nodeploy
+    if: ${{ !contains(github.event.head_commit.message, '@nodeploy') }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies (if any)
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Generate redirect pages
+        run: python3 generate_links.py
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./out
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    # Only run deploy if build completed successfully
+    if: ${{ needs.build.result == 'success' }}
+    steps:
+      - name: Deploy Pages
+        uses: actions/deploy-pages@v1
