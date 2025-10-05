@@ -5,3 +5,14 @@
 ; LinkedIn Profile
 /in
 	:=https://www.linkedin.com/in/jacobszh/
+; GitHub Profile
+/gh
+	:=https://github.com/ShingZhanho
+
+; French verb conjugation data project
+/verbes
+	:=https://github.com/ShingZhanho/verbe-conjugaison-academie-francaise
+; French verb conjugation practice app
+; 	-- TO BE DEVELOPED, LINK ADDED FOR FUTURE, NOT AVAILABLE YET --
+/conjuguons
+	:=https://conjuguons.jacobshing.com/
