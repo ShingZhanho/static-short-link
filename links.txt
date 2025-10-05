@@ -1,6 +1,12 @@
 ; HKU-Notes GitHub Pages
 /hku
-	:=https://hku.jacobshing.com/
+	:=https://hku.jacobshing.com/downloads/index.html
+/hku/engg1340
+	:=https://hku.jacobshing.com/downloads/details/ENGG1340-Cheatsheet.html
+/hku/comp2120
+	:=https://hku.jacobshing.com/downloads/details/COMP2120-Notes.html
+/hku/comp2120/cs
+	:=https://hku.jacobshing.com/downloads/details/COMP2120-Cheatsheet.html
 
 ; LinkedIn Profile
 /in
