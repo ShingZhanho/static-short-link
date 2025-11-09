@@ -1,1 +1,19 @@
 out/
+
+# Django
+*.pyc
+__pycache__/
+db.sqlite3
+/staticfiles/
+/media/
+*.log
+.env
+venv/
+*.sock
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

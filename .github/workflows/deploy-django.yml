@@ -1,0 +1,57 @@
+name: Deploy Django to DigitalOcean
+
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.DROPLET_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Deploy to DigitalOcean
+        env:
+          DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          DROPLET_PATH: ${{ secrets.DROPLET_PATH }}
+        run: |
+          ssh $DROPLET_USER@$DROPLET_HOST << 'EOF'
+            set -e
+            
+            # Navigate to project directory
+            cd ${{ secrets.DROPLET_PATH }}
+            
+            # Pull latest changes
+            git pull origin production
+            
+            # Activate virtual environment (adjust path as needed)
+            source venv/bin/activate
+            
+            # Install/update dependencies
+            pip install -r requirements.txt
+            
+            # Run migrations
+            python manage.py migrate --noinput
+            
+            # Collect static files
+            python manage.py collectstatic --noinput
+            
+            # Restart application
+            sudo systemctl restart j-shi-ng
+            
+            echo "Deployment completed successfully!"
+          EOF
