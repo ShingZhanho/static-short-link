@@ -9,6 +9,13 @@
       gtag('js', new Date());
 
       gtag('config', 'G-ZPYHXH67X3');
+      
+      // Send redirect event
+      gtag('event', 'redirect', {
+        'event_category': 'short_link',
+        'event_label': '{{ slug }}',
+        'destination_url': '{{ destination }}'
+      });
     </script>
     
     <meta charset="UTF-8">

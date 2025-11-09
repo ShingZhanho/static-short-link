@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) - Portal pages: events suppressed -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPYHXH67X3"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
-      gtag('config', 'G-ZPYHXH67X3');
+      // Suppress all automatic tracking on portal pages
+      gtag('config', 'G-ZPYHXH67X3', {
+        'send_page_view': false
+      });
     </script>
     
     <meta charset="UTF-8">

@@ -6,8 +6,39 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
 from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
+import requests
+import uuid
+import threading
 from .models import ShortLink
 from .forms import ShortLinkForm
+
+
+def send_ga4_event(client_id, event_name, event_params):
+    """
+    Send event to Google Analytics 4 using Measurement Protocol.
+    Runs in a separate thread to not block the redirect.
+    """
+    def _send():
+        try:
+            url = 'https://www.google-analytics.com/mp/collect'
+            params = {
+                'measurement_id': 'G-ZPYHXH67X3',
+                'api_secret': 'YOUR_API_SECRET'  # TODO: Move to environment variable
+            }
+            payload = {
+                'client_id': client_id,
+                'events': [{
+                    'name': event_name,
+                    'params': event_params
+                }]
+            }
+            requests.post(url, params=params, json=payload, timeout=1)
+        except:
+            pass  # Silently fail if GA tracking fails
+    
+    thread = threading.Thread(target=_send)
+    thread.daemon = True
+    thread.start()
 
 
 def redirect_view(request, path):
@@ -88,6 +119,21 @@ def redirect_view(request, path):
             parsed_url.fragment
         ))
     
+    # Generate or get client ID for GA tracking
+    client_id = request.COOKIES.get('_ga', str(uuid.uuid4()))
+    
+    # Send analytics event in background
+    send_ga4_event(
+        client_id=client_id,
+        event_name='redirect',
+        event_params={
+            'slug': short_link.slug,
+            'destination_url': destination,
+            'jump_type': short_link.jump_type,
+            'protocol': 'http' if destination.startswith('http://') else 'https' if destination.startswith('https://') else 'other'
+        }
+    )
+    
     # For non-HTTP protocols (mailto:, tel:, custom apps), render a redirect page
     # HTTP redirects don't work for these protocols in all browsers
     if not destination.startswith(('http://', 'https://')):
@@ -96,7 +142,7 @@ def redirect_view(request, path):
             'slug': short_link.slug
         })
     
-    # For HTTP/HTTPS, use standard redirect with 302 (temporary redirect)
+    # For HTTP/HTTPS, use efficient 302 redirect (GA event already sent above)
     return redirect(destination)
 
 
