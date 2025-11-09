@@ -32,16 +32,36 @@ class ShortLinkForm(forms.ModelForm):
         """Validate slug format."""
         slug = self.cleaned_data['slug']
         
-        # Remove leading/trailing slashes
-        slug = slug.strip('/')
-        
         # Check for invalid characters
         if any(char in slug for char in ['?', '#', '&', ' ']):
             raise forms.ValidationError(
                 'Slug cannot contain spaces, ?, #, or & characters'
             )
         
+        # Remove leading slash
+        slug = slug.lstrip('/')
+        
         return slug
+    
+    def clean(self):
+        """Cross-field validation."""
+        cleaned_data = super().clean()
+        slug = cleaned_data.get('slug')
+        jump_type = cleaned_data.get('jump_type')
+        
+        if slug and jump_type:
+            # For prefix modes, ensure slug ends with /
+            if jump_type in ['prefix', 'prefix-forward']:
+                if not slug.endswith('/'):
+                    raise forms.ValidationError({
+                        'slug': 'Prefix mode slugs must end with a slash (e.g., "my-prefix/")'
+                    })
+            # For non-prefix modes, ensure slug does NOT end with /
+            else:
+                if slug.endswith('/'):
+                    cleaned_data['slug'] = slug.rstrip('/')
+        
+        return cleaned_data
     
     def clean_destination_url(self):
         """Ensure URL has a scheme."""

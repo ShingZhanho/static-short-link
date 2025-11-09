@@ -8,6 +8,8 @@ class ShortLink(models.Model):
     JUMP_TYPE_CHOICES = [
         ('simple', 'Simple Jump - Ignore parameters'),
         ('forward', 'Parameter Forward - Forward all parameters'),
+        ('prefix', 'Prefix Mode - Match paths with this prefix'),
+        ('prefix-forward', 'Prefix + Forward - Match prefix and forward parameters'),
     ]
     
     slug = models.CharField(
@@ -20,10 +22,10 @@ class ShortLink(models.Model):
         help_text="The full URL to redirect to (must start with http:// or https://)"
     )
     jump_type = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=JUMP_TYPE_CHOICES,
         default='simple',
-        help_text="Simple: ignore URL parameters. Forward: pass parameters to destination"
+        help_text="Simple: ignore URL parameters. Forward: pass parameters to destination. Prefix: match paths with prefix. Prefix-Forward: combine prefix matching with parameter forwarding"
     )
     description = models.TextField(
         blank=True,

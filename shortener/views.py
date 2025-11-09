@@ -13,13 +13,39 @@ from .forms import ShortLinkForm
 def redirect_view(request, path):
     """
     Handle /go/<path> redirects.
-    Supports both simple jumps and parameter forwarding.
+    Supports simple jumps, parameter forwarding, and prefix matching.
+    Priority: exact matches (simple/forward) > prefix matches (prefix/prefix-forward)
     """
+    # First, try exact match with simple or forward mode
     try:
-        # Get the short link from database
-        short_link = ShortLink.objects.get(slug=path, is_active=True)
+        short_link = ShortLink.objects.get(
+            slug=path, 
+            is_active=True,
+            jump_type__in=['simple', 'forward']
+        )
+        extra_path = ''
     except ShortLink.DoesNotExist:
-        raise Http404("Short link not found")
+        # If no exact match, try prefix matching
+        short_link = None
+        extra_path = ''
+        
+        # Look for prefix matches - find all prefix-type links that could match
+        prefix_links = ShortLink.objects.filter(
+            is_active=True,
+            jump_type__in=['prefix', 'prefix-forward'],
+            slug__endswith='/'
+        ).order_by('-slug')  # Order by slug descending to match longest prefix first
+        
+        for candidate in prefix_links:
+            # Check if the path starts with this prefix
+            if path.startswith(candidate.slug):
+                short_link = candidate
+                # Extract the extra path after the prefix
+                extra_path = path[len(candidate.slug):]
+                break
+        
+        if not short_link:
+            raise Http404("Short link not found")
     
     # Increment click counter
     short_link.increment_clicks()
@@ -27,8 +53,15 @@ def redirect_view(request, path):
     # Get the destination URL
     destination = short_link.destination_url
     
-    # If jump type is 'forward', append query parameters
-    if short_link.jump_type == 'forward' and request.GET:
+    # Handle prefix modes: append extra path
+    if short_link.jump_type in ['prefix', 'prefix-forward'] and extra_path:
+        # Ensure destination ends with / if extra_path doesn't start with /
+        if not destination.endswith('/') and not extra_path.startswith('/'):
+            destination = destination + '/'
+        destination = destination + extra_path
+    
+    # If jump type is 'forward' or 'prefix-forward', append query parameters
+    if short_link.jump_type in ['forward', 'prefix-forward'] and request.GET:
         # Parse the destination URL
         parsed_url = urlparse(destination)
         
