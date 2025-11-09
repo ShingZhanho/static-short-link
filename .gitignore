@@ -10,6 +10,8 @@ db.sqlite3
 .env
 venv/
 *.sock
+/backups/
+backup_db.sh
 
 .python-version
 
