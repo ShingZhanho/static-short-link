@@ -28,8 +28,9 @@ jobs:
           DROPLET_HOST: ${{ secrets.DROPLET_HOST }}
           DROPLET_USER: ${{ secrets.DROPLET_USER }}
           DROPLET_PATH: ${{ secrets.DROPLET_PATH }}
+          GA_API_KEY: ${{ secrets.GA_API_KEY }}
         run: |
-          ssh $DROPLET_USER@$DROPLET_HOST << 'EOF'
+          ssh $DROPLET_USER@$DROPLET_HOST bash << 'EOF'
             set -e
             
             # Navigate to project directory
@@ -38,7 +39,7 @@ jobs:
             # Pull latest changes
             git pull origin production
             
-            # Activate virtual environment (adjust path as needed)
+            # Activate virtual environment
             source venv/bin/activate
             
             # Install/update dependencies
@@ -49,6 +50,10 @@ jobs:
             
             # Collect static files
             python manage.py collectstatic --noinput
+            
+            # Update systemd service with GA_API_KEY
+            chmod +x scripts/update_service.sh
+            scripts/update_service.sh "${{ secrets.GA_API_KEY }}"
             
             # Restart application
             sudo systemctl restart j-shi-ng

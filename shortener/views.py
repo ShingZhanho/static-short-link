@@ -9,8 +9,12 @@ from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
 import requests
 import uuid
 import threading
+import logging
+import os
 from .models import ShortLink
 from .forms import ShortLinkForm
+
+logger = logging.getLogger(__name__)
 
 
 def send_ga4_event(client_id, event_name, event_params):
@@ -20,10 +24,15 @@ def send_ga4_event(client_id, event_name, event_params):
     """
     def _send():
         try:
+            api_secret = os.environ.get('GA_API_KEY')
+            if not api_secret:
+                logger.warning('GA_API_KEY environment variable not set, skipping analytics')
+                return
+            
             url = 'https://www.google-analytics.com/mp/collect'
             params = {
                 'measurement_id': 'G-ZPYHXH67X3',
-                'api_secret': 'YOUR_API_SECRET'  # TODO: Move to environment variable
+                'api_secret': api_secret
             }
             payload = {
                 'client_id': client_id,
@@ -32,9 +41,11 @@ def send_ga4_event(client_id, event_name, event_params):
                     'params': event_params
                 }]
             }
-            requests.post(url, params=params, json=payload, timeout=1)
-        except:
-            pass  # Silently fail if GA tracking fails
+            response = requests.post(url, params=params, json=payload, timeout=1)
+            if response.status_code != 204:
+                logger.warning(f'GA tracking failed: {response.status_code} - {response.text}')
+        except Exception as e:
+            logger.error(f'GA tracking error: {e}')
     
     thread = threading.Thread(target=_send)
     thread.daemon = True
