@@ -1,0 +1,114 @@
+{% extends "shortener/base.html" %}
+
+{% block content %}
+<div class="stats">
+    <div class="stat-card">
+        <div class="label">Total Links</div>
+        <div class="value">{{ total_links }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Active Links</div>
+        <div class="value">{{ active_links }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Clicks</div>
+        <div class="value">{{ total_clicks }}</div>
+    </div>
+</div>
+
+<div class="content">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Short Links</h2>
+        <a href="{% url 'link_create' %}" class="btn btn-primary">+ Create New Link</a>
+    </div>
+    
+    <div class="search-bar">
+        <form method="get" style="display: flex; gap: 10px; width: 100%;">
+            <input 
+                type="text" 
+                name="search" 
+                class="form-control" 
+                placeholder="Search links..." 
+                value="{{ search_query }}"
+            >
+            <button type="submit" class="btn btn-primary">Search</button>
+            {% if search_query %}
+            <a href="{% url 'portal_home' %}" class="btn btn-secondary">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+    
+    {% if links %}
+    <table>
+        <thead>
+            <tr>
+                <th>Short URL</th>
+                <th>Destination</th>
+                <th>Type</th>
+                <th>Clicks</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for link in links %}
+            <tr>
+                <td>
+                    <strong>/go/{{ link.slug }}</strong>
+                    {% if link.description %}
+                    <br><small style="color: #666;">{{ link.description|truncatewords:10 }}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ link.destination_url }}" target="_blank" style="color: #667eea; text-decoration: none;">
+                        {{ link.destination_url|truncatechars:50 }}
+                    </a>
+                </td>
+                <td>
+                    {% if link.jump_type == 'simple' %}
+                    <span class="badge badge-simple">Simple</span>
+                    {% else %}
+                    <span class="badge badge-forward">Forward</span>
+                    {% endif %}
+                </td>
+                <td>{{ link.click_count }}</td>
+                <td>
+                    {% if link.is_active %}
+                    <span class="badge badge-active">Active</span>
+                    {% else %}
+                    <span class="badge badge-inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="actions">
+                        <a href="{% url 'link_edit' link.pk %}" class="btn btn-primary btn-small">Edit</a>
+                        <form method="post" action="{% url 'link_toggle' link.pk %}" style="display: inline;">
+                            {% csrf_token %}
+                            {% if link.is_active %}
+                            <button type="submit" class="btn btn-warning btn-small">Disable</button>
+                            {% else %}
+                            <button type="submit" class="btn btn-success btn-small">Enable</button>
+                            {% endif %}
+                        </form>
+                        <form method="post" action="{% url 'link_delete' link.pk %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete /go/{{ link.slug }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 40px; color: #666;">
+        <p style="font-size: 18px; margin-bottom: 10px;">No short links found</p>
+        {% if search_query %}
+        <p>Try a different search term</p>
+        {% else %}
+        <p>Create your first short link to get started!</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

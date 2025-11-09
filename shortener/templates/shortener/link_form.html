@@ -1,0 +1,102 @@
+{% extends "shortener/base.html" %}
+
+{% block title %}{{ title }} - j-shi.ng Admin{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'portal_home' %}" class="btn btn-secondary">← Back to Links</a>
+    </div>
+    
+    <h2>{{ title }}</h2>
+    
+    {% if link %}
+    <div style="background: #f7fafc; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <strong>Current Short URL:</strong> /go/{{ link.slug }}<br>
+        <strong>Clicks:</strong> {{ link.click_count }}
+    </div>
+    {% endif %}
+    
+    <form method="post" style="margin-top: 20px;">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_slug">Short URL Path *</label>
+            {{ form.slug }}
+            {% if form.slug.errors %}
+                <ul class="errorlist">
+                {% for error in form.slug.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            <span class="helptext">The path after /go/ (e.g., "google" or "social/twitter")</span>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_destination_url">Destination URL *</label>
+            {{ form.destination_url }}
+            {% if form.destination_url.errors %}
+                <ul class="errorlist">
+                {% for error in form.destination_url.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            <span class="helptext">The full URL to redirect to (must include http:// or https://)</span>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_jump_type">Jump Type *</label>
+            {{ form.jump_type }}
+            {% if form.jump_type.errors %}
+                <ul class="errorlist">
+                {% for error in form.jump_type.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            <div style="margin-top: 10px; padding: 10px; background: #f7fafc; border-radius: 5px; font-size: 13px;">
+                <strong>Simple Jump:</strong> URL parameters are ignored<br>
+                <em>Example: /go/google?test=1 → google.com (parameters dropped)</em>
+                <br><br>
+                <strong>Parameter Forward:</strong> URL parameters are forwarded to destination<br>
+                <em>Example: /go/bing?kw=hello → bing.com?kw=hello</em>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_description">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+                <ul class="errorlist">
+                {% for error in form.description.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            <span class="helptext">Optional notes about this short link</span>
+        </div>
+        
+        <div class="form-group">
+            <div class="form-check">
+                {{ form.is_active }}
+                <label for="id_is_active">Active</label>
+            </div>
+            {% if form.is_active.errors %}
+                <ul class="errorlist">
+                {% for error in form.is_active.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            <span class="helptext">Inactive links will return 404</span>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button type="submit" class="btn btn-primary">Save Link</button>
+            <a href="{% url 'portal_home' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
