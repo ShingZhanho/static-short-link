@@ -88,7 +88,15 @@ def redirect_view(request, path):
             parsed_url.fragment
         ))
     
-    # Redirect with 302 (temporary redirect)
+    # For non-HTTP protocols (mailto:, tel:, custom apps), render a redirect page
+    # HTTP redirects don't work for these protocols in all browsers
+    if not destination.startswith(('http://', 'https://')):
+        return render(request, 'shortener/protocol_redirect.html', {
+            'destination': destination,
+            'slug': short_link.slug
+        })
+    
+    # For HTTP/HTTPS, use standard redirect with 302 (temporary redirect)
     return redirect(destination)
 
 

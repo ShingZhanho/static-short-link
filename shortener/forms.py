@@ -1,4 +1,7 @@
 from django import forms
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+import re
 from .models import ShortLink
 
 
@@ -11,9 +14,9 @@ class ShortLinkForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'e.g., google or social/twitter',
             }),
-            'destination_url': forms.URLInput(attrs={
+            'destination_url': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'https://example.com',
+                'placeholder': 'https://example.com or mailto:email@example.com or tel:+1234567890',
             }),
             'jump_type': forms.Select(attrs={
                 'class': 'form-control',
@@ -64,12 +67,39 @@ class ShortLinkForm(forms.ModelForm):
         return cleaned_data
     
     def clean_destination_url(self):
-        """Ensure URL has a scheme."""
-        url = self.cleaned_data['destination_url']
+        """Validate URL/URI format - allow various protocols."""
+        url = self.cleaned_data['destination_url'].strip()
         
-        if not url.startswith(('http://', 'https://')):
+        # Check if it has a protocol/scheme
+        if not re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*:', url):
             raise forms.ValidationError(
-                'URL must start with http:// or https://'
+                'Destination must include a protocol (e.g., https://, mailto:, tel:, or custom app protocol)'
             )
+        
+        # For HTTP/HTTPS, do standard validation
+        if url.startswith(('http://', 'https://')):
+            validator = URLValidator(schemes=['http', 'https'])
+            try:
+                validator(url)
+            except ValidationError:
+                raise forms.ValidationError('Invalid HTTP/HTTPS URL format')
+        
+        # For mailto:, do basic validation
+        elif url.startswith('mailto:'):
+            email_part = url[7:]  # Remove 'mailto:'
+            if not email_part or '@' not in email_part.split('?')[0]:
+                raise forms.ValidationError('Invalid mailto: format. Example: mailto:user@example.com')
+        
+        # For tel:, do basic validation
+        elif url.startswith('tel:'):
+            phone_part = url[4:]  # Remove 'tel:'
+            if not phone_part or not re.match(r'^[0-9+\-() ]+$', phone_part):
+                raise forms.ValidationError('Invalid tel: format. Example: tel:+1234567890')
+        
+        # For other protocols (custom apps, etc.), just ensure it's not empty after the colon
+        else:
+            protocol, _, content = url.partition(':')
+            if not content:
+                raise forms.ValidationError(f'Invalid {protocol}: URI - missing content after protocol')
         
         return url

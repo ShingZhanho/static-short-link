@@ -17,9 +17,9 @@ class ShortLink(models.Model):
         unique=True,
         help_text="The path after /go/ (can include slashes, e.g., 'google' or 'social/twitter')"
     )
-    destination_url = models.URLField(
+    destination_url = models.CharField(
         max_length=2048,
-        help_text="The full URL to redirect to (must start with http:// or https://)"
+        help_text="The destination URL or URI (supports http://, https://, mailto:, tel:, and custom app protocols)"
     )
     jump_type = models.CharField(
         max_length=20,
